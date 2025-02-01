@@ -23,7 +23,7 @@ This project implements a simple retail shopping cart SPA using Angular 18.  Use
 1. **Clone the repository:**
 
 ```bash
-git clone [https://github.com/](https://github.com/)[your-username]/retail-cart.git  # Replace with your repository URL
+git clone https://github.com/RalphMarvin/retail-cart.git
 ```
 
 2. **Navigate to the project directory:**
