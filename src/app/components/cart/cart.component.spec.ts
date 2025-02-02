@@ -1,14 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CartComponent } from './cart.component';
-import { CartService } from '../../services/cart.service';
+import { CartService } from '../../services/cart/cart.service';
+import { DiscountService } from '../../services/discount/discount.service';
+import { LocalStorageService } from '../../services/local-storage/local-storage.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { Product } from '../../models/product.interface';
+import { signal, computed } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { CartItem } from '../../models/cart.interface';
 
 describe('CartComponent', () => {
   let component: CartComponent;
   let fixture: ComponentFixture<CartComponent>;
-  let cartService: CartService;
 
   const mockProduct: Product = {
     id: 1,
@@ -17,29 +21,103 @@ describe('CartComponent', () => {
     imageUrl: 'https://placehold.co/600x400',
   };
 
+  type MockCartService = {
+    items: ReturnType<typeof signal<CartItem[]>>;
+    subtotal: ReturnType<typeof computed>;
+    total: ReturnType<typeof computed>;
+    appliedDiscount: ReturnType<typeof signal<number>>;
+    addToCart: jest.Mock;
+    removeFromCart: jest.Mock;
+    updateQuantity: jest.Mock;
+    applyDiscount: jest.Mock;
+  };
+
+  let itemsSignal: ReturnType<typeof signal<CartItem[]>>;
+  let appliedDiscountSignal: ReturnType<typeof signal<number>>;
+
+  let mockCartService: MockCartService;
+  let mockLocalStorageService: any;
+  let mockDiscountService: any;
+
   beforeEach(async () => {
+    itemsSignal = signal<CartItem[]>([]);
+    appliedDiscountSignal = signal<number>(0);
+
+    mockCartService = {
+      items: itemsSignal,
+      subtotal: computed(() => {
+        return itemsSignal().reduce(
+          (total, item) => total + item.product.price * item.quantity,
+          0
+        );
+      }),
+      total: computed(() => {
+        return (
+          itemsSignal().reduce(
+            (total, item) => total + item.product.price * item.quantity,
+            0
+          ) - appliedDiscountSignal()
+        );
+      }),
+      appliedDiscount: appliedDiscountSignal,
+      addToCart: jest.fn((product: Product) => {
+        itemsSignal.update((items) => [...items, { product, quantity: 1 }]);
+      }),
+      removeFromCart: jest.fn((productId: number) => {
+        itemsSignal.update((items) =>
+          items.filter((item) => item.product.id !== productId)
+        );
+      }),
+      updateQuantity: jest.fn((productId: number, quantity: number) => {
+        itemsSignal.update((items) =>
+          items.map((item) =>
+            item.product.id === productId ? { ...item, quantity } : item
+          )
+        );
+      }),
+      applyDiscount: jest.fn(),
+    };
+
+    mockLocalStorageService = { save: jest.fn(), load: jest.fn() };
+    mockDiscountService = {
+      validateDiscount: jest.fn(),
+      calculateDiscount: jest.fn(),
+      clearDiscount: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
-      imports: [CartComponent, ReactiveFormsModule],
-      providers: [CartService],
+      imports: [CartComponent, ReactiveFormsModule, NgOptimizedImage],
+      providers: [
+        { provide: CartService, useValue: mockCartService },
+        { provide: LocalStorageService, useValue: mockLocalStorageService },
+        { provide: DiscountService, useValue: mockDiscountService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CartComponent);
     component = fixture.componentInstance;
-    cartService = TestBed.inject(CartService);
+
+    // Reset signals before each test
+    mockCartService.items.set([]);
+    mockCartService.appliedDiscount.set(0);
+    jest.clearAllMocks();
+
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show "Your cart is empty" when there are no items', () => {
+  it('should display "Your cart is empty" when no items exist', () => {
     const emptyMessage = fixture.debugElement.query(By.css('p'));
-    expect(emptyMessage.nativeElement.textContent).toContain('Your cart is empty');
+    expect(emptyMessage.nativeElement.textContent).toContain(
+      'Your cart is empty'
+    );
   });
 
-  it('should display cart items when there are products', () => {
-    cartService.addToCart(mockProduct);
+  it('should display cart items when products are added', () => {
+    mockCartService.addToCart(mockProduct);
     fixture.detectChanges();
 
     const cartItems = fixture.debugElement.queryAll(By.css('.cart-item'));
@@ -48,30 +126,41 @@ describe('CartComponent', () => {
   });
 
   it('should update quantity when input is changed', () => {
-    cartService.addToCart(mockProduct);
+    mockCartService.addToCart(mockProduct);
     fixture.detectChanges();
 
-    const input = fixture.debugElement.query(By.css('.quantity-input')).nativeElement;
+    const input = fixture.debugElement.query(
+      By.css('.quantity-input')
+    ).nativeElement;
     input.value = '2';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(cartService.items()[0].quantity).toBe(2);
+    expect(mockCartService.updateQuantity).toHaveBeenCalledWith(
+      mockProduct.id,
+      2
+    );
   });
 
   it('should remove an item when the remove button is clicked', () => {
-    cartService.addToCart(mockProduct);
+    mockCartService.addToCart(mockProduct);
     fixture.detectChanges();
 
     const removeButton = fixture.debugElement.query(By.css('.btn-danger'));
     removeButton.nativeElement.click();
     fixture.detectChanges();
 
-    expect(cartService.items().length).toBe(0);
+    expect(mockCartService.removeFromCart).toHaveBeenCalledWith(mockProduct.id);
+    expect(mockCartService.items().length).toBe(0);
   });
 
-  it('should apply a discount when a valid code is entered', () => {
-    cartService.addToCart(mockProduct);
+  it('should apply a valid discount code', () => {
+    mockCartService.addToCart(mockProduct);
+    mockCartService.applyDiscount.mockReturnValue({
+      success: true,
+      message: 'Discount applied successfully',
+      discount: 5,
+    });
     fixture.detectChanges();
 
     component.discountForm.controls['code'].setValue('SAVE10');
@@ -79,15 +168,46 @@ describe('CartComponent', () => {
     fixture.detectChanges();
 
     expect(component.discountMessage()).toBe('Discount applied successfully');
-    expect(component.discountAmount()).toBe(5); // 10% of $50 = $5
+    expect(component.discountApplied()).toBe(true);
+    expect(mockCartService.applyDiscount).toHaveBeenCalledWith('SAVE10');
   });
 
   it('should not apply an invalid discount code', () => {
+    mockCartService.applyDiscount.mockReturnValue({
+      success: false,
+      message: 'Invalid discount code',
+      discount: 0,
+    });
+
     component.discountForm.controls['code'].setValue('INVALID');
     component.applyDiscount();
     fixture.detectChanges();
 
     expect(component.discountMessage()).toBe('Invalid discount code');
-    expect(component.discountAmount()).toBe(0);
+    expect(component.discountApplied()).toBe(false);
+    expect(mockCartService.applyDiscount).toHaveBeenCalledWith('INVALID');
+  });
+
+  it('should calculate correct subtotal and total with discount', () => {
+    mockCartService.addToCart(mockProduct);
+    mockCartService.appliedDiscount.set(5);
+    fixture.detectChanges();
+
+    expect(mockCartService.subtotal()).toBe(50);
+    expect(mockCartService.total()).toBe(45);
+  });
+
+  it('should reset discount form after successful application', () => {
+    mockCartService.applyDiscount.mockReturnValue({
+      success: true,
+      message: 'Discount applied successfully',
+      discount: 5,
+    });
+
+    component.discountForm.controls['code'].setValue('SAVE10');
+    component.applyDiscount();
+    fixture.detectChanges();
+
+    expect(component.discountForm.get('code')?.value).toBeFalsy();
   });
 });
