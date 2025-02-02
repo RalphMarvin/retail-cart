@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavComponent } from './nav.component';
-import { CartService } from '../../services/cart.service';
+import { CartService } from '../../services/cart/cart.service';
 import { provideRouter, Router } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { ProductListComponent } from '../product-list/product-list.component';
