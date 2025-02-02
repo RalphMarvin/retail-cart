@@ -4,12 +4,21 @@
       Retail Store
     </a>
     <div class="nav-links">
-      <a routerLink="/products" routerLinkActive="active" class="nav-link" (click)="navigate('/products', $event)">
+      <a
+        routerLink="/products"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="navigate('/products', $event)"
+      >
         Products
       </a>
-      <a routerLink="/cart" routerLinkActive="active" class="nav-link" (click)="navigate('/cart', $event)">
-        Cart
-        @if (cartService.totalItems() > 0) {
+      <a
+        routerLink="/cart"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="navigate('/cart', $event)"
+      >
+        Cart @if (cartService.totalItems() > 0) {
         <span class="badge">
           {{ cartService.totalItems() }}
         </span>
