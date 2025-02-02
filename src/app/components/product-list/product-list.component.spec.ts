@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductListComponent } from './product-list.component';
-import { CartService } from '../../services/cart.service';
+import { CartService } from '../../services/cart/cart.service';
 import { By } from '@angular/platform-browser';
 
 describe('ProductListComponent', () => {
@@ -11,7 +11,7 @@ describe('ProductListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProductListComponent],
-      providers: [CartService], // Provide the CartService
+      providers: [CartService],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProductListComponent);
@@ -33,7 +33,9 @@ describe('ProductListComponent', () => {
   it('should add a product to the cart when clicking "Add to Cart"', () => {
     const spy = jest.spyOn(cartService, 'addToCart');
 
-    const productButtons = fixture.debugElement.queryAll(By.css('.btn-primary'));
+    const productButtons = fixture.debugElement.queryAll(
+      By.css('.btn-primary')
+    );
     productButtons[0].nativeElement.click(); // Click first "Add to Cart" button
 
     expect(spy).toHaveBeenCalledWith(component.products[0]); // Verify correct call
