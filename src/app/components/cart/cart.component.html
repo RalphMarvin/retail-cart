@@ -33,40 +33,49 @@
   </div>
   }
   <div class="discount-form">
-    <form
-      [formGroup]="discountForm"
-      (ngSubmit)="applyDiscount()"
-      class="discount-form"
-    >
-      <input
-        formControlName="code"
-        placeholder="Enter discount code"
-        class="input discount-input"
-      />
-      <button
-        type="submit"
-        [disabled]="!discountForm.valid"
-        class="btn btn-primary"
+    <div class="discount-input-container">
+      <form
+        [formGroup]="discountForm"
+        (ngSubmit)="applyDiscount()"
+        class="discount-form"
       >
-        Apply
-      </button>
-    </form>
+        <input
+          formControlName="code"
+          placeholder="Enter discount code"
+          [class]="
+            discountForm.get('code')?.value &&
+            (discountApplied()
+              ? 'input discount-input success'
+              : 'input discount-input error')
+          "
+          class="input discount-input"
+        />
+        <button
+          type="submit"
+          [disabled]="!discountForm.valid"
+          class="btn btn-primary"
+        >
+          Apply
+        </button>
+      </form>
+    </div>
+    @if (discountCodeApplied()) {
+    <p class="discount-applied-message">
+      Discount <b>{{ discountCodeApplied() }}</b> was applied successfully!
+    </p>
+    }
   </div>
 
-  @if (discountMessage()) {
-  <p [class]="discountApplied() ? 'success-message' : 'error-message'">
-    {{ discountMessage() }}
-  </p>
-  }
+  <hr />
 
   <div class="cart-summary">
     <p>Subtotal: {{ cart.subtotal() | currency }}</p>
     @if (cart.appliedDiscount() > 0) {
-    <p class="success-message">
-      Discount: -{{ cart.appliedDiscount() | currency }}
-    </p>
+    <p>Discount: -{{ cart.appliedDiscount() | currency }}</p>
     }
     <p class="cart-total">Total: {{ cart.total() | currency }}</p>
   </div>
   }
+
+  <div class="error-toast" [class.show]="errorMessage">{{ errorMessage }}</div>
 </div>
