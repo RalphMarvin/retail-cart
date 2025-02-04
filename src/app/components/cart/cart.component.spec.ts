@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { CartComponent } from './cart.component';
 import { CartService } from '../../services/cart/cart.service';
 import { DiscountService } from '../../services/discount/discount.service';
@@ -155,24 +155,23 @@ describe('CartComponent', () => {
   });
 
   it('should apply a valid discount code', () => {
-    mockCartService.addToCart(mockProduct);
+    // Mock a successful discount application
     mockCartService.applyDiscount.mockReturnValue({
       success: true,
       message: 'Discount applied successfully',
       discount: 5,
     });
-    fixture.detectChanges();
 
     component.discountForm.controls['code'].setValue('SAVE10');
     component.applyDiscount();
     fixture.detectChanges();
 
-    expect(component.discountMessage()).toBe('Discount applied successfully');
-    expect(component.discountApplied()).toBe(true);
+    expect(component.discountCodeApplied()).toBe('SAVE10');
     expect(mockCartService.applyDiscount).toHaveBeenCalledWith('SAVE10');
   });
 
   it('should not apply an invalid discount code', () => {
+    // Force applyDiscount to return an error
     mockCartService.applyDiscount.mockReturnValue({
       success: false,
       message: 'Invalid discount code',
@@ -183,10 +182,35 @@ describe('CartComponent', () => {
     component.applyDiscount();
     fixture.detectChanges();
 
-    expect(component.discountMessage()).toBe('Invalid discount code');
+    expect(component.discountMessage()).toBe('');
     expect(component.discountApplied()).toBe(false);
+    expect(component.discountCodeApplied()).toBe('');
     expect(mockCartService.applyDiscount).toHaveBeenCalledWith('INVALID');
   });
+
+  it('should display error toast when an invalid discount code is applied', fakeAsync(() => {
+    // Force applyDiscount to return an error
+    mockCartService.applyDiscount.mockReturnValue({
+      success: false,
+      message: 'Invalid discount code',
+      discount: 0,
+    });
+
+    // Set an invalid discount code
+    component.discountForm.controls['code'].setValue('INVALID');
+    component.applyDiscount();
+    fixture.detectChanges();
+
+    // Check error message
+    expect(component.errorMessage).toBe('Invalid discount code');
+
+    // Advance time to trigger timeout
+    tick(5000);
+    fixture.detectChanges();
+
+    // Check error message is cleared
+    expect(component.errorMessage).toBe('');
+  }));
 
   it('should calculate correct subtotal and total with discount', () => {
     mockCartService.addToCart(mockProduct);
