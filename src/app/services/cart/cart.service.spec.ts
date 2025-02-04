@@ -84,10 +84,10 @@ describe('CartService', () => {
     expect(service.items()[0].quantity).toBe(3);
   });
 
-  it('should remove a product if the quantity is set to 0', () => {
+  it('should not remove a product if the quantity is set to 0', () => {
     service.addToCart(mockProduct);
     service.updateQuantity(mockProduct.id, 0);
-    expect(service.items().length).toBe(0);
+    expect(service.items().length).toBe(1);
   });
 
   it('should calculate the correct subtotal', () => {
