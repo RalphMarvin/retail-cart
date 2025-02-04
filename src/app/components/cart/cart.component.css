@@ -1,3 +1,9 @@
+hr {
+  border: none;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
 .cart-item {
   display: flex;
   align-items: center;
@@ -41,16 +47,55 @@
 .cart-summary {
   margin-top: var(--spacing-xl);
   text-align: right;
+  padding: var(--spacing-md);
+  background-color: #f9fafb;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-top: 1px solid var(--border-color);
 }
 
 .discount-form {
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
-  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); */
+}
+
+@media (min-width: 768px) {
+  .discount-form {
+    flex-direction: column;
+  }
+  .discount-input-container {
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 
 .discount-input {
-  flex: 1;
+  width: 300px;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  transition: border-color 0.3s;
+}
+
+.discount-input:focus {
+  border-color: #cbd5e1; /* Lighter border on focus */
+}
+
+.discount-input.success {
+  border-color: #059669; /* Green for success */
+}
+
+.discount-input.error {
+  border-color: #dc2626; /* Red for error */
+}
+
+.discount-applied-message {
+  width: 100%;
 }
 
 .cart-total {
@@ -59,17 +104,68 @@
   margin-top: var(--spacing-md);
 }
 
-.success-message {
+.success-message, .discount-applied-message {
   color: #059669;
   margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: #ecfdf5; /* Light green background */
+  border-left: 4px solid #059669; /* Solid left border for emphasis */
+  border-radius: var(--border-radius);
 }
 
 .error-message {
   color: var(--danger-color);
   margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: #fef2f2; /* Light red background */
+  border-left: 4px solid var(--danger-color); /* Solid left border for emphasis */
+  border-radius: var(--border-radius);
 }
 
 h2 {
   margin-top: 12px;
   margin-bottom: 20px;
+}
+
+.error-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--danger-color);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1050; /* High z-index to ensure it's on top of other content */
+  display: none;
+}
+.error-toast.show {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .cart-summary {
+    margin-bottom: 30px;
+  }
+
+  .cart-item, .cart-summary, .discount-form {
+    flex-direction: column;
+    align-items: stretch;
+    display: flex;
+  }
+
+  .cart-item-image {
+    width: 100%; /* Full width on small screens */
+    height: auto; /* Maintain aspect ratio */
+  }
+
+  .cart-item-details, .cart-item-actions {
+    width: 100%; /* Full width for details and actions */
+    margin-left: 0;
+    margin-top: 12px;
+  }
+
+  .quantity-input, .discount-input {
+    width: 100%; /* Full width for inputs */
+  }
 }
