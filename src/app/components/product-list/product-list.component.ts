@@ -38,14 +38,14 @@ export class ProductListComponent {
       name: 'Baseball Cap',
       price: 24.99,
       imageUrl:
-        'https://gh.jumia.is/unsafe/fit-in/500x500/filters:fill(white)/product/65/8696031/1.jpg?4910',
+        'https://rukminim2.flixcart.com/image/850/1000/xif0q/cap/t/7/b/free-latest-ny-baseball-cap-highever-original-imagnm8yxxvmhmdy.jpeg?q=90&crop=false',
     },
     {
       id: 5,
       name: 'Ray band Subglasses',
       price: 10.99,
       imageUrl:
-        'https://www.sportrx.com/sportrx-blog/wp-content/uploads/2019/07/real-ray-bans-vs-fake-ray-bans.jpg',
+        'https://www.geescollect.com/image/cache/catalog/Eyeglasses%202023/rayban%20glasses%20nigeria%2030-600x800.jpg',
     },
     {
       id: 6,
@@ -59,7 +59,7 @@ export class ProductListComponent {
       name: 'Perfume',
       price: 29.99,
       imageUrl:
-        'https://gh.jumia.is/unsafe/fit-in/500x500/filters:fill(white)/product/12/6895031/1.jpg?9608',
+        'https://i.pinimg.com/736x/8a/77/b8/8a77b89e8301a50ce96103693e4b4fac.jpg',
     },
     {
       id: 8,
