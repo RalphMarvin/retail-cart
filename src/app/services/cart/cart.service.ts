@@ -13,9 +13,12 @@ export class CartService {
   private cartItems = signal<CartItem[]>([]);
   readonly items = this.cartItems.asReadonly();
 
-  readonly totalItems = computed(() =>
-    this.items().reduce((total, item) => total + item.quantity, 0)
-  );
+  readonly totalItems = computed(() => {
+    const uniqueProductIds = new Set(
+      this.items().map((item) => item.product.id)
+    );
+    return uniqueProductIds.size;
+  });
 
   readonly subtotal = computed(() =>
     this.items().reduce(
@@ -83,11 +86,6 @@ export class CartService {
   }
 
   updateQuantity(productId: number, quantity: number): void {
-    if (quantity <= 0) {
-      this.removeFromCart(productId);
-      return;
-    }
-
     this.cartItems.update((items) =>
       items.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
