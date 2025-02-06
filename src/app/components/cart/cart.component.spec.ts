@@ -234,4 +234,57 @@ describe('CartComponent', () => {
 
     expect(component.discountForm.get('code')?.value).toBeFalsy();
   });
+
+  it('should disable Apply button initially', async () => {
+    mockCartService.addToCart(mockProduct);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const applyButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+    expect(applyButton).not.toBeNull();
+    expect(applyButton?.nativeElement.disabled).toBe(true);
+  });
+
+  it('should enable Apply button when discount input is filled', async () => {
+    mockCartService.addToCart(mockProduct);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const inputElement = fixture.debugElement.query(By.css('input[formControlName="code"]'));
+    const applyButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+
+    expect(inputElement).not.toBeNull();
+    expect(applyButton).not.toBeNull();
+
+    inputElement.nativeElement.value = 'DISCOUNT10';
+    inputElement.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(applyButton.nativeElement.disabled).toBe(false);
+  });
+
+  it('should disable Apply button if input is cleared', async () => {
+    mockCartService.addToCart(mockProduct);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const inputElement = fixture.debugElement.query(By.css('input[formControlName="code"]'));
+    const applyButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+
+    expect(inputElement).not.toBeNull();
+    expect(applyButton).not.toBeNull();
+
+    inputElement.nativeElement.value = 'DISCOUNT10';
+    inputElement.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    inputElement.nativeElement.value = '';
+    inputElement.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(applyButton.nativeElement.disabled).toBe(true);
+  });
 });
