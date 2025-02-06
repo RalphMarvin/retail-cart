@@ -52,7 +52,7 @@
         />
         <button
           type="submit"
-          [disabled]="!discountForm.valid"
+          [disabled]="discountForm.get('code')?.pristine || !discountForm.valid"
           class="btn btn-primary"
         >
           Apply
